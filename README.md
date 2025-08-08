@@ -83,9 +83,10 @@ tool: read_file({"path":"README.md"})
 Based on the README.md file, this is a project that implements AI agents using Anthropic's Claude API...
 
 You: What tools are available?
-Claude: Based on the code, there is currently one tool available:
+Claude: Based on the code, there are currently two tools available:
 
-1. **read_file** - This tool allows me to read the contents of files in the working directory...
+1. **read_file** - This tool allows me to read the contents of files in the working directory
+2. **list_files** - This tool allows me to list files and directories at a given path...
 ```
 
 ## Configuration
@@ -94,7 +95,7 @@ Both implementations use similar default settings:
 - **Model**: Claude 3.5 Sonnet Latest
 - **Max Tokens**: 1024 per response  
 - **Input**: Standard input (terminal)
-- **Tools**: `read_file` tool enabled by default
+- **Tools**: `read_file` and `list_files` tools enabled by default
 
 ## Architecture
 
@@ -112,7 +113,13 @@ The core logic remains consistent across both implementations, with language-spe
 ```
 anthropic-agent/
 ├── golang/                  # Go implementation
-│   ├── main.go             #   - Main application and agent logic
+│   ├── main.go             #   - Application entry point
+│   ├── agent/              #   - Agent package
+│   │   └── agent.go        #     - Core agent logic and interfaces
+│   ├── tools/              #   - Tools package
+│   │   ├── tools.go        #     - Shared utilities
+│   │   ├── read_file.go    #     - File reading tool
+│   │   └── list_files.go   #     - Directory listing tool
 │   ├── go.mod              #   - Go dependencies
 │   ├── go.sum              #   - Dependency checksums
 │   └── README.md           #   - Go-specific documentation

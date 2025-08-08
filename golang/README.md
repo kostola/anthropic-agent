@@ -85,21 +85,60 @@ The agent follows a simple but powerful architecture:
 
 ### Adding New Tools
 
-To add a new tool, create a `ToolDefinition` with:
-- `Name`: Unique identifier for the tool
-- `Description`: What the tool does (helps Claude understand when to use it)
-- `InputSchema`: Generated from a Go struct using `GenerateSchema[T]()`
-- `Function`: Implementation that takes JSON input and returns a string result
+To add a new tool, create a struct in the `tools/` package that implements the `agent.ToolDefinition` interface:
+
+```go
+// In tools/my_tool.go
+type MyTool struct {
+    inputSchema anthropic.ToolInputSchemaParam
+}
+
+type MyToolInput struct {
+    Param string `json:"param" jsonschema_description:"Description of the parameter"`
+}
+
+func NewMyTool() *MyTool {
+    return &MyTool{
+        inputSchema: GenerateSchema[MyToolInput](),
+    }
+}
+
+func (t *MyTool) Name() string { return "my_tool" }
+func (t *MyTool) Description() string { return "What the tool does" }
+func (t *MyTool) InputSchema() anthropic.ToolInputSchemaParam { return t.inputSchema }
+func (t *MyTool) Execute(input json.RawMessage) (string, error) {
+    // Tool implementation
+}
+```
+
+Then register it in `main.go`:
+```go
+agentTools := []agent.ToolDefinition{
+    tools.NewReadFileTool(),
+    tools.NewListFilesTool(),
+    tools.NewMyTool(), // Add your new tool here
+}
+```
 
 ### Code Organization
 
-The main.go file contains several key components:
+The codebase is organized into focused packages:
 
-- **`Agent`**: Core agent struct with tool integration
-- **`ToolDefinition`**: Framework for defining new tools
-- **`GenerateSchema[T]`**: Generic function for creating JSON schemas from Go structs
-- **`ReadFileDefinition`**: Built-in tool for file reading capabilities
-- **Tool execution loop**: Handles tool calls and result processing
+#### **`main.go`**
+- Application entry point
+- Tool registration and agent initialization
+- User input handling
+
+#### **`agent/` Package**
+- **`agent.go`**: Core agent implementation with conversation loop
+- **`ToolDefinition` interface**: Contract that all tools must implement
+- Agent configuration and Claude API integration
+
+#### **`tools/` Package**
+- **`tools.go`**: Shared utilities like `GenerateSchema[T]()` function
+- **`read_file.go`**: File reading tool implementation
+- **`list_files.go`**: Directory listing tool implementation
+- Each tool in its own file for modularity
 
 ## Dependencies
 
@@ -108,6 +147,9 @@ The main.go file contains several key components:
 
 ## Go-Specific Features
 
+- **Package Architecture**: Clean separation of concerns with dedicated packages
+- **Interface-Driven Design**: Tools implement a common interface for extensibility
+- **Schema Caching**: Input schemas are computed once and cached for performance
 - **Type Safety**: Leverages Go's strong typing system for tool input validation
 - **JSON Schema Generation**: Automatic schema creation from Go structs
 - **Memory Efficiency**: Compiled binary with minimal runtime overhead
@@ -118,18 +160,18 @@ The main.go file contains several key components:
 
 To build a standalone binary:
 ```bash
-go build -o agent main.go
+go build -o agent
 ./agent
 ```
 
 To build for different platforms:
 ```bash
 # Linux
-GOOS=linux GOARCH=amd64 go build -o agent-linux main.go
+GOOS=linux GOARCH=amd64 go build -o agent-linux
 
 # Windows
-GOOS=windows GOARCH=amd64 go build -o agent-windows.exe main.go
+GOOS=windows GOARCH=amd64 go build -o agent-windows.exe
 
 # macOS
-GOOS=darwin GOARCH=amd64 go build -o agent-macos main.go
+GOOS=darwin GOARCH=amd64 go build -o agent-macos
 ``` 
