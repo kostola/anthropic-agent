@@ -13,7 +13,7 @@ The project is inspired by Thorsten Ball's tutorial ["How to Build an Agent"](ht
 Both implementations provide:
 - **Interactive CLI Chat**: Chat with Claude directly from your terminal
 - **Tool Integration**: Extensible tool system allowing Claude to execute functions
-- **File Operations**: Built-in `read_file` tool for examining file contents
+- **File Operations**: Built-in `read_file` and `list_files` tools for file system access
 - **Conversation Context**: Maintains full conversation history for coherent responses
 - **Clean Interface**: Color-coded output to distinguish between user input, Claude's responses, and tool executions
 - **Error Handling**: Graceful error handling for API calls, tool execution, and user input
@@ -31,8 +31,9 @@ Located in the [`golang/`](./golang/) directory.
 
 ### 🐍 Python Implementation  
 Located in the [`python/`](./python/) directory.
+- **Interface-Driven Design**: Abstract base classes for extensible tool development
+- **Schema Caching**: Performance optimizations with cached input schemas
 - **LangChain Integration**: Leverages LangChain's extensive tool ecosystem
-- **Pydantic Validation**: Type-safe tool inputs using Pydantic models
 - **Flexibility**: Easy to extend and prototype new features
 
 [📖 Python Implementation Details →](./python/README.md)
@@ -102,8 +103,8 @@ Both implementations use similar default settings:
 Both implementations follow a similar architecture pattern:
 
 1. **Agent Loop**: Continuously processes user input and Claude responses
-2. **Tool System**: Extensible framework for adding new capabilities  
-3. **Input Validation**: Type-safe tool inputs (JSON schema in Go, Pydantic in Python)
+2. **Tool System**: Extensible framework for adding new capabilities
+3. **Input Validation**: Type-safe tool inputs (JSON schema in Go, interface contracts in Python)
 4. **Tool Execution**: Safe execution of tools with error handling and result formatting
 
 The core logic remains consistent across both implementations, with language-specific optimizations and patterns.
@@ -124,9 +125,14 @@ anthropic-agent/
 │   ├── go.sum              #   - Dependency checksums
 │   └── README.md           #   - Go-specific documentation
 ├── python/                  # Python implementation  
-│   ├── main.py             #   - Entry point
-│   ├── agent.py            #   - Agent class and conversation logic
-│   ├── tools.py            #   - Tool implementations
+│   ├── main.py             #   - Application entry point
+│   ├── agent/              #   - Agent package
+│   │   ├── __init__.py     #     - Package initialization
+│   │   └── agent.py        #     - Core agent logic and interfaces
+│   ├── tools/              #   - Tools package
+│   │   ├── __init__.py     #     - Package initialization
+│   │   ├── read_file.py    #     - File reading tool
+│   │   └── list_files.py   #     - Directory listing tool
 │   ├── requirements.txt    #   - Python dependencies
 │   └── README.md           #   - Python-specific documentation
 ├── LICENSE                  # MIT License

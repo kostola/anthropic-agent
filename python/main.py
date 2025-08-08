@@ -1,13 +1,13 @@
 """
 Main script for the Python agent implementation.
-Mirrors the functionality of main.go using LangChain and Anthropic Claude.
+Provides an interactive CLI interface using LangChain and Anthropic Claude.
 """
 
 import sys
 from typing import Tuple
 from langchain_anthropic import ChatAnthropic
 from agent import Agent
-from tools import read_file_tool
+from tools import ReadFileTool, ListFilesTool
 
 
 def get_user_message() -> Tuple[str, bool]:
@@ -36,11 +36,14 @@ def main():
     )
     
     # Define available tools
-    tools = [read_file_tool]
+    agent_tools = [
+        ReadFileTool(),
+        ListFilesTool(),
+    ]
     
     # Create and run the agent
-    agent = Agent(client, get_user_message, tools)
-    error = agent.run()
+    agent_instance = Agent(client, get_user_message, agent_tools)
+    error = agent_instance.run()
     
     if error:
         print(f"Error: {error}")

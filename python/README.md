@@ -15,7 +15,7 @@ This Python implementation demonstrates how to build a functional AI agent using
 - **Color-coded Output**: Clean interface distinguishing user input, Claude responses, and tool executions
 - **Error Handling**: Robust error handling for API calls, tool execution, and user input
 - **Modular Design**: Clean separation between agent logic, tools, and main execution
-- **Pydantic Validation**: Type-safe tool inputs using Pydantic models
+- **Type Safety**: Interface-driven design with comprehensive type hints
 
 ## Prerequisites
 
@@ -49,6 +49,7 @@ python main.py
 The agent will start an interactive chat session. You can:
 - Type messages to chat with Claude
 - Claude can use the `read_file` tool to read files in your current directory
+- Claude can use the `list_files` tool to list files and directories
 - Use `Ctrl+C` to quit
 
 ### Example Session
@@ -62,9 +63,10 @@ tool: read_file({"path": "main.py"})
 Based on the main.py file, this is a Python application that implements an AI agent using LangChain...
 
 You: What tools are available?
-Claude: Based on the code I just read, there is currently one tool available:
+Claude: Based on the code I just read, there are currently two tools available:
 
-1. **read_file** - This tool allows me to read the contents of files in the working directory...
+1. **read_file** - This tool allows me to read the contents of files in the working directory
+2. **list_files** - This tool allows me to list files and directories at a given path...
 ```
 
 ## Configuration
@@ -74,64 +76,89 @@ The application uses the following default settings:
 - **Max Tokens**: 1024 per response
 - **Temperature**: 0 (deterministic responses)
 - **Input**: Standard input (terminal)
-- **Tools**: `read_file` tool enabled by default
+- **Tools**: `read_file` and `list_files` tools enabled by default
 
 ## Architecture
 
-The Python implementation consists of three main modules:
+The Python implementation is organized into focused packages:
 
 ### `main.py`
-- Entry point that mirrors the Go main function
-- Initializes the ChatAnthropic client
-- Sets up the conversation loop
-- Handles user input and graceful shutdown
+- Application entry point
+- Tool registration and agent initialization
+- User input handling and graceful shutdown
 
-### `agent.py`
-- `Agent` class that manages the conversation flow
-- Handles message history and tool execution
-- Integrates with LangChain's tool binding system
-- Provides error handling and user interaction
+### `agent/` Package
+- **`agent.py`**: Core agent implementation with conversation loop
+- **`ToolDefinition` interface**: Abstract base class that all tools must implement
+- Agent configuration and Claude API integration
 
-### `tools.py`
-- `ReadFileTool` implementation using LangChain's `BaseTool`
-- Pydantic models for input validation
-- Extensible architecture for adding new tools
+### `tools/` Package
+- **`read_file.py`**: File reading tool implementation
+- **`list_files.py`**: Directory listing tool implementation
+- Each tool implements the `ToolDefinition` interface
+- Schema caching for optimal performance
 
 ## Adding New Tools
 
-To add a new tool, create a class that inherits from `BaseTool`:
+To add a new tool, create a class in the `tools/` package that implements the `ToolDefinition` interface:
 
 ```python
-from langchain_core.tools import BaseTool
-from pydantic import BaseModel, Field
+# In tools/my_tool.py
+from typing import Any, Dict
+from agent import ToolDefinition
 
-class MyToolInput(BaseModel):
-    param: str = Field(description="Description of the parameter")
-
-class MyTool(BaseTool):
-    name: str = "my_tool"
-    description: str = "Description of what the tool does"
-    args_schema: Type[BaseModel] = MyToolInput
+class MyTool(ToolDefinition):
+    def __init__(self):
+        # Cache the schema at initialization
+        self._input_schema = {
+            "type": "object",
+            "properties": {
+                "param": {
+                    "type": "string", 
+                    "description": "Description of the parameter"
+                }
+            },
+            "required": ["param"]
+        }
     
-    def _run(self, param: str) -> str:
+    def name(self) -> str:
+        return "my_tool"
+    
+    def description(self) -> str:
+        return "Description of what the tool does"
+    
+    def input_schema(self) -> Dict[str, Any]:
+        return self._input_schema
+    
+    def execute(self, param: str) -> str:
         # Tool implementation
         return "Tool result"
+```
 
-# Add to tools list in main.py
-tools = [read_file_tool, MyTool()]
+Then register it in `main.py`:
+```python
+from tools import ReadFileTool, ListFilesTool, MyTool
+
+agent_tools = [
+    ReadFileTool(),
+    ListFilesTool(), 
+    MyTool(),  # Add your new tool here
+]
 ```
 
 ## Dependencies
 
 - **langchain-anthropic**: LangChain integration for Anthropic Claude
 - **langchain-core**: Core LangChain functionality for messages and tools
-- **pydantic**: Data validation and settings management using Python type annotations
 - **anthropic**: Official Anthropic Python SDK
 
 ## Python-Specific Features
 
-- **Dynamic Typing**: Leverages Python's flexibility while maintaining type safety with Pydantic
-- **LangChain Ecosystem**: Access to extensive LangChain tool library and integrations
+- **Package Architecture**: Clean separation of concerns with dedicated packages
+- **Interface-Driven Design**: Tools implement a common abstract base class for extensibility
+- **Schema Caching**: Input schemas are computed once and cached for performance
+- **Dynamic Typing**: Leverages Python's flexibility while maintaining type safety
+- **LangChain Integration**: Seamless integration with LangChain's tool ecosystem
 - **Rapid Prototyping**: Easy to modify and extend with new functionality
 - **Rich Error Messages**: Detailed error information for debugging
 - **Package Management**: Standard pip/requirements.txt dependency management
@@ -162,28 +189,31 @@ To test the implementation:
 
 ```bash
 python -c "
-from tools import read_file_tool
-print('Tool test:', read_file_tool.invoke({'path': 'main.py'})[:100] + '...')
+from tools import ReadFileTool
+tool = ReadFileTool()
+print('Tool test:', tool.execute(path='main.py')[:100] + '...')
 "
 ```
 
 ## Comparison with Go Implementation
 
 **Similarities:**
-- Same conversation loop logic
-- Same tool execution pattern
-- Same error handling approach
-- Same user interface with colored output
-- Same Claude model capabilities
+- Package-based architecture with separation of concerns
+- Interface-driven design for tool extensibility
+- Schema caching for performance optimization
+- Same conversation loop logic and tool execution pattern
+- Same error handling approach and user interface
+- Both tools: `read_file` and `list_files` with identical functionality
 
 **Python Advantages:**
 - LangChain's extensive tool ecosystem
 - More flexible for rapid prototyping
 - Rich Python ecosystem for data processing
 - Dynamic configuration and runtime modifications
+- Abstract base classes for clear interface contracts
 
-**Go Advantages:**
+**Other Implementation Advantages:**
 - Type safety at compile time
 - Single binary deployment
 - Better performance for production workloads
-- Memory efficiency 
+- Memory efficiency and lower resource usage 

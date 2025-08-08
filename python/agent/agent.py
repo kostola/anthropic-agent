@@ -1,32 +1,58 @@
 """
 Agent implementation using LangChain and Anthropic Claude.
-Mirrors the functionality of the Go agent implementation.
+Provides interface-based design for extensible tool integration.
 """
 
 import json
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from abc import ABC, abstractmethod
+from typing import Callable, List, Optional, Tuple
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage
-from langchain_core.tools import BaseTool
-from pydantic import BaseModel, Field
+
+
+class ToolDefinition(ABC):
+    """
+    Interface that all tools must implement.
+    Defines the contract for agent tool implementations.
+    """
+    
+    @abstractmethod
+    def name(self) -> str:
+        """Return the tool name."""
+        pass
+    
+    @abstractmethod
+    def description(self) -> str:
+        """Return the tool description."""
+        pass
+    
+    @abstractmethod
+    def input_schema(self) -> dict:
+        """Return the tool input schema."""
+        pass
+    
+    @abstractmethod
+    def execute(self, **kwargs) -> str:
+        """Execute the tool with the given input."""
+        pass
 
 
 class Agent:
     """
     Agent class that handles conversation with Claude using LangChain.
-    Equivalent to the Go Agent struct.
+    Manages conversation flow and tool execution with interface-based design.
     """
     
     def __init__(
         self,
         client: ChatAnthropic,
         get_user_message: Callable[[], Tuple[str, bool]],
-        tools: List[BaseTool]
+        tools: List[ToolDefinition]
     ):
         self.client = client
         self.get_user_message = get_user_message
         self.tools = tools
-        self.tools_by_name = {tool.name: tool for tool in tools}
+        self.tools_by_name = {tool.name(): tool for tool in tools}
     
     def run(self) -> Optional[str]:
         """
@@ -82,11 +108,20 @@ class Agent:
     def _run_inference(self, conversation: List[BaseMessage]) -> AIMessage:
         """
         Run inference with the conversation history.
-        Equivalent to runInference in Go.
+        Sends conversation to Claude and returns the response.
         """
-        # Bind tools to the client
-        client_with_tools = self.client.bind_tools(self.tools)
+        # Convert tools to Anthropic native format
+        anthropic_tools = []
+        for tool in self.tools:
+            anthropic_tools.append({
+                "name": tool.name(),
+                "description": tool.description(),
+                "input_schema": tool.input_schema()
+            })
         
+        # Bind tools to the client
+        client_with_tools = self.client.bind(tools=anthropic_tools)
+
         # Invoke the model
         response = client_with_tools.invoke(conversation)
         return response
@@ -94,7 +129,7 @@ class Agent:
     def _execute_tool(self, tool_call) -> ToolMessage:
         """
         Execute a tool call and return the result.
-        Equivalent to executeTool in Go.
+        Handles tool execution and error management.
         """
         tool_name = tool_call["name"]
         tool_input = tool_call["args"]
@@ -112,7 +147,7 @@ class Agent:
         print(f"\u001b[92mTool\u001b[0m: {tool_name}({json.dumps(tool_input)})")
         
         try:
-            result = tool.invoke(tool_input)
+            result = tool.execute(**tool_input)
             return ToolMessage(
                 content=str(result),
                 tool_call_id=tool_call_id
