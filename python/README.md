@@ -114,22 +114,22 @@ class MyTool(ToolDefinition):
             "type": "object",
             "properties": {
                 "param": {
-                    "type": "string", 
+                    "type": "string",
                     "description": "Description of the parameter"
                 }
             },
             "required": ["param"]
         }
-    
+
     def name(self) -> str:
         return "my_tool"
-    
+
     def description(self) -> str:
         return "Description of what the tool does"
-    
+
     def input_schema(self) -> Dict[str, Any]:
         return self._input_schema
-    
+
     def execute(self, param: str) -> str:
         # Tool implementation
         return "Tool result"
@@ -141,7 +141,7 @@ from tools import ReadFileTool, ListFilesTool, MyTool
 
 agent_tools = [
     ReadFileTool(),
-    ListFilesTool(), 
+    ListFilesTool(),
     MyTool(),  # Add your new tool here
 ]
 ```
@@ -216,4 +216,4 @@ print('Tool test:', tool.execute(path='main.py')[:100] + '...')
 - Type safety at compile time
 - Single binary deployment
 - Better performance for production workloads
-- Memory efficiency and lower resource usage 
+- Memory efficiency and lower resource usage

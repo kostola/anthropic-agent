@@ -13,7 +13,7 @@ from tools import ReadFileTool, ListFilesTool
 def get_user_message() -> Tuple[str, bool]:
     """
     Get user input from stdin.
-    
+
     Returns:
         Tuple of (message, success) where success indicates if input was read
     """
@@ -34,21 +34,21 @@ def main():
         max_tokens=1024,
         temperature=0
     )
-    
+
     # Define available tools
     agent_tools = [
         ReadFileTool(),
         ListFilesTool(),
     ]
-    
+
     # Create and run the agent
     agent_instance = Agent(client, get_user_message, agent_tools)
     error = agent_instance.run()
-    
+
     if error:
         print(f"Error: {error}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    main() 
+    main()

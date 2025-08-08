@@ -29,7 +29,7 @@ Located in the [`golang/`](./golang/) directory.
 
 [📖 Go Implementation Details →](./golang/README.md)
 
-### 🐍 Python Implementation  
+### 🐍 Python Implementation
 Located in the [`python/`](./python/) directory.
 - **Interface-Driven Design**: Abstract base classes for extensible tool development
 - **Schema Caching**: Performance optimizations with cached input schemas
@@ -94,7 +94,7 @@ Claude: Based on the code, there are currently two tools available:
 
 Both implementations use similar default settings:
 - **Model**: Claude 3.5 Sonnet Latest
-- **Max Tokens**: 1024 per response  
+- **Max Tokens**: 1024 per response
 - **Input**: Standard input (terminal)
 - **Tools**: `read_file` and `list_files` tools enabled by default
 
@@ -124,7 +124,7 @@ anthropic-agent/
 │   ├── go.mod              #   - Go dependencies
 │   ├── go.sum              #   - Dependency checksums
 │   └── README.md           #   - Go-specific documentation
-├── python/                  # Python implementation  
+├── python/                  # Python implementation
 │   ├── main.py             #   - Application entry point
 │   ├── agent/              #   - Agent package
 │   │   ├── __init__.py     #     - Package initialization
