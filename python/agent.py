@@ -101,7 +101,7 @@ class Agent:
         tool_call_id = tool_call["id"]
         
         if tool_name not in self.tools_by_name:
-            print(f"\u001b[92mtool\u001b[0m: {tool_name}({json.dumps(tool_input)})")
+            print(f"\u001b[92mTool\u001b[0m: {tool_name}({json.dumps(tool_input)})")
             return ToolMessage(
                 content="tool not found",
                 tool_call_id=tool_call_id
@@ -109,7 +109,7 @@ class Agent:
         
         tool = self.tools_by_name[tool_name]
         
-        print(f"\u001b[92mtool\u001b[0m: {tool_name}({json.dumps(tool_input)})")
+        print(f"\u001b[92mTool\u001b[0m: {tool_name}({json.dumps(tool_input)})")
         
         try:
             result = tool.invoke(tool_input)
