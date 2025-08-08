@@ -4,7 +4,7 @@ A command-line AI agent built in Python using LangChain that provides an interac
 
 ## Overview
 
-This Python implementation demonstrates how to build a functional AI agent using LangChain and Anthropic's Claude API. The agent leverages LangChain's powerful tool integration system and provides the same functionality as the Go implementation with Python's flexibility and ecosystem.
+This Python implementation demonstrates how to build a functional AI agent using LangChain and Anthropic's Claude API. The agent leverages LangChain's powerful tool integration system and provides flexible, extensible tool-calling capabilities with Python's rich ecosystem.
 
 ## Features
 
@@ -194,26 +194,3 @@ tool = ReadFileTool()
 print('Tool test:', tool.execute(path='main.py')[:100] + '...')
 "
 ```
-
-## Comparison with Go Implementation
-
-**Similarities:**
-- Package-based architecture with separation of concerns
-- Interface-driven design for tool extensibility
-- Schema caching for performance optimization
-- Same conversation loop logic and tool execution pattern
-- Same error handling approach and user interface
-- Both tools: `read_file` and `list_files` with identical functionality
-
-**Python Advantages:**
-- LangChain's extensive tool ecosystem
-- More flexible for rapid prototyping
-- Rich Python ecosystem for data processing
-- Dynamic configuration and runtime modifications
-- Abstract base classes for clear interface contracts
-
-**Other Implementation Advantages:**
-- Type safety at compile time
-- Single binary deployment
-- Better performance for production workloads
-- Memory efficiency and lower resource usage
